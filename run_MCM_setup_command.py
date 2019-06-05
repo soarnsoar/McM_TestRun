@@ -21,7 +21,7 @@ class RunMcM():
         self.NEVENT=NEVENT
 
 
-    def run_setup_command(self):
+    def get_setup_command(self):
         PREPID=self.PREPID
         url = 'https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/'+PREPID
         response = urlopen(url).read()
@@ -34,22 +34,23 @@ class RunMcM():
         os.system('wget '+url)
         os.system('mv '+PREPID+' setup.sh')
         os.system('chmod u+x setup.sh')
-        subprocess.call(os.getcwd()+'/setup.sh',shell=True)
-
-    def modify_nevent(self):
+        #subprocess.call(os.getcwd()+'/setup.sh',shell=True)
+        #os.system('source '+os.getcwd()+'/setup.sh')
+    def modify_option(self,option,argument):
         PREPID=self.PREPID
-        NEVENT=self.NEVENT
-        print "--"+str(NEVENT)+"--"
+        option=' '+option+' '
+        #NEVENT=self.NEVENT
+        print "--"+str(argument)+"--"
         f=open('setup.sh','r')
         fnew=open('setup.sh_new','w')
 
         lines=f.readlines()
         for line in lines:
-            if ' -n ' in line:##where defining nevents
-                first=line.split(' -n ')[0]
-                second=line.split(' -n ')[1]
+            if option in line:##where defining nevents
+                first=line.split(option)[0]
+                second=line.split(option)[1]
                 second=' '.join(second.split(' ')[1:]) ## remove event value
-                newline=first+' -n '+NEVENT+' '+second
+                newline=first+option+argument+' '+second
                 fnew.write(newline)
             else:
                 fnew.write(line)
@@ -59,12 +60,14 @@ class RunMcM():
         fnew.close()
         os.system('mv setup.sh_new setup.sh')
 
-    def cmsRun(self):
+    def cmsRun(self):##NOT WORKING
         PREPID=self.PREPID
         NEVENT=self.NEVENT
         python_cfg=PREPID+'_1_cfg.py'
-        subprocess.call('cmsRun '+python_cfg+'&> '+PREPID+'_'+NEVENT+'.log',shell=True)
-        
+        command='cmsRun '+python_cfg+'&> '+PREPID+'_'+NEVENT+'.log'
+        #subprocess.call('cmsRun '+python_cfg+'&> '+PREPID+'_'+NEVENT+'.log')
+        print "--"+command+"--"
+        os.system(command)
 
 
 
@@ -75,23 +78,25 @@ class RunMcM():
         NEVENT=self.NEVENT
         
         start = timeit.default_timer()
-
-        os.system('mkdir -p '+PREPID)
-        os.chdir(os.getcwd()+'/'+PREPID)
-        self.run_setup_command()
-        self.modify_nevent()
-        self.cmsRun()
+        mydir=PREPID+"_"+NEVENT
+        os.system('mkdir -p '+PREPID+"_"+NEVENT)
+        os.chdir(os.getcwd()+'/'+mydir)
+        self.get_setup_command()
+        self.modify_option('-n',NEVENT)
+        self.modify_option('--python_filename','my_cfg.py')
+        
+        #self.cmsRun()
         
 
-        stop = timeit.default_timer()
+        #stop = timeit.default_timer()
 
 
-        RUNTIME=stop-start
+        #RUNTIME=stop-start
 
 
-        SERVER=socket.gethostname()
+        #SERVER=socket.gethostname()
         #def SendEmail(From,To,Subject,Content):
-        SendEmail('soarnsoar@gmail.com','soarnsoar@gmail.com','FINISHED JOB '+PREPID+"@"+SERVER,'Runtime='+str(RUNTIME)+'\nCURDIR='+os.getcwd()+'\nPREPID='+PREPID+'\nSERVER='+SERVER)
+        #SendEmail('soarnsoar@gmail.com','soarnsoar@gmail.com','FINISHED JOB '+PREPID+"@"+SERVER,'Runtime='+str(RUNTIME)+'\nCURDIR='+os.getcwd()+'\nPREPID='+PREPID+'\nSERVER='+SERVER)
 
 
 if __name__ == "__main__":
