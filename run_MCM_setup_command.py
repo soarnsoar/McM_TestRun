@@ -24,14 +24,17 @@ class RunMcM():
     def get_setup_command(self):
         PREPID=self.PREPID
         url = 'https://cms-pdmv.cern.ch/mcm/public/restapi/requests/get_setup/'+PREPID
-        response = urlopen(url).read()
+
+
+        #response = urlopen(url).read()
 
         print '--'+PREPID+'--'
         #f = open('setup.sh', "w")
         #print response
         #f.write(response.strip('"').replace('\\n','\n').strip('\n').strip('"'))
         #f.close()
-        os.system('wget '+url)
+        #os.system('wget '+url)
+        os.system('wget --no-check-certificate '+url)
         os.system('mv '+PREPID+' setup.sh')
         os.system('chmod u+x setup.sh')
         #subprocess.call(os.getcwd()+'/setup.sh',shell=True)
@@ -60,6 +63,49 @@ class RunMcM():
         fnew.close()
         os.system('mv setup.sh_new setup.sh')
 
+    def AddCondorJds(self):
+
+        '''
+executable = /cms/ldap_home/jhchoi/HWW_Analysis/slc7/ForDevelopHMlnjjSel2017_New/jhchoi_workdir/jobs//NanoGardening__Autumn18_102X_nAODv5_Full2018v5/NanoGardening__Autumn18_102X_nAODv5_Full2018v5__HMlnjjSel__DYJetsToLL_M-10to50-LO__part0____MCl1loose2018v5__MCCorr2018v5__Semilep2018_whad30.sh
+universe = vanilla
+output = /cms/ldap_home/jhchoi/HWW_Analysis/slc7/ForDevelopHMlnjjSel2017_New/jhchoi_workdir/jobs//NanoGardening__Autumn18_102X_nAODv5_Full2018v5/NanoGardening__Autumn18_102X_nAODv5_Full2018v5__HMlnjjSel__DYJetsToLL_M-10to50-LO__part0____MCl1loose2018v5__MCCorr2018v5__Semilep2018_whad30.out
+error = /cms/ldap_home/jhchoi/HWW_Analysis/slc7/ForDevelopHMlnjjSel2017_New/jhchoi_workdir/jobs//NanoGardening__Autumn18_102X_nAODv5_Full2018v5/NanoGardening__Autumn18_102X_nAODv5_Full2018v5__HMlnjjSel__DYJetsToLL_M-10to50-LO__part0____MCl1loose2018v5__MCCorr2018v5__Semilep2018_whad30.err
+log = /cms/ldap_home/jhchoi/HWW_Analysis/slc7/ForDevelopHMlnjjSel2017_New/jhchoi_workdir/jobs//NanoGardening__Autumn18_102X_nAODv5_Full2018v5/NanoGardening__Autumn18_102X_nAODv5_Full2018v5__HMlnjjSel__DYJetsToLL_M-10to50-LO__part0____MCl1loose2018v5__MCCorr2018v5__Semilep2018_whad30.log
+accounting_group=group_cms
+queue
+
+        '''
+
+        PREPID=self.PREPID
+        NEVENT=self.NEVENT
+        shname=PREPID+"_"+NEVENT+'.sh'
+        outname=PREPID+"_"+NEVENT+'.out'
+        errname=PREPID+"_"+NEVENT+'.err'
+        logname=PREPID+"_"+NEVENT+'.log'
+        ##Need run setup and myrun.sh
+        ## exe.sh which runs setup.sh addtime source myrun
+        f=open(shname,'w')
+        f.write('#! /bin/bash\n')
+        f.write('source setup.sh\n')
+        f.write('wget --no-check-certificate https://raw.githubusercontent.com/soarnsoar/python_tool/master/add_runtime.py\n')
+        f.write("echo 'cmsRun my_cfg.py' > myrun.sh\n")
+        f.write('python add_runtime.py myrun.sh\n')
+        f.write('source myrun.sh\n')
+        os.system('chmod u+x '+shname+'\n')
+        f.close()
+
+        f=open('condor_conf.jds','w')
+        f.write('executable='+shname+'\n')
+        f.write('universe = vanilla\n')
+        f.write('output='+outname+'\n')
+        f.write('error='+errname+'\n')
+        f.write('log='+logname+'\n')
+        f.write('transfer_input_files=setup.sh\n')
+        f.write('should_transfer_files = YES\n')
+        f.write('accounting_group=group_cms\n')
+        f.write('queue\n')
+        f.close()
+
     def cmsRun(self):##NOT WORKING
         PREPID=self.PREPID
         NEVENT=self.NEVENT
@@ -84,7 +130,7 @@ class RunMcM():
         self.get_setup_command()
         self.modify_option('-n',NEVENT)
         self.modify_option('--python_filename','my_cfg.py')
-        
+        self.AddCondorJds()
         #self.cmsRun()
         
 
