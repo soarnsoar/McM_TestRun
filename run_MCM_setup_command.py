@@ -15,6 +15,19 @@ import argparse
 
 
 
+def convert_arch(script):
+  f=open(script,'r')
+  fnew=open(script+'_new','w')
+  lines=f.readlines()
+  for line in lines:
+        if 'SCRAM_ARCH' in line and 'slc6' in line:
+           line=line.replace('slc6','slc7')
+        fnew.write(line)
+  f.close()
+  fnew.close()
+  os.system('mv '+script+'_new '+script)
+        
+
 class RunMcM():
     def __init__(self,PREPID,NEVENT):
         self.PREPID=PREPID
@@ -36,6 +49,7 @@ class RunMcM():
         #os.system('wget '+url)
         os.system('wget --no-check-certificate '+url)
         os.system('mv '+PREPID+' setup.sh')
+	#convert_arch('setup.sh')
         os.system('chmod u+x setup.sh')
         #subprocess.call(os.getcwd()+'/setup.sh',shell=True)
         #os.system('source '+os.getcwd()+'/setup.sh')
@@ -97,6 +111,11 @@ queue
         f=open('condor_conf.jds','w')
         f.write('executable='+shname+'\n')
         f.write('universe = vanilla\n')
+        f.write('requirements = OpSysMajorVer == 6\n')
+        f.write('requirements = ( HasSingularity == true )\n')
+        f.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el6:latest\n')
+        f.write('+SingularityBind = "/cvmfs, /cms, /share"\n')
+        
         f.write('output='+outname+'\n')
         f.write('error='+errname+'\n')
         f.write('log='+logname+'\n')

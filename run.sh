@@ -1,6 +1,7 @@
 
 
 ARR_REQUEST=(
+HIG-RunIIFall18wmLHEGS-03116
 HIG-RunIIFall18wmLHEGS-03117
 HIG-RunIIFall18wmLHEGS-03118
 HIG-RunIIFall18wmLHEGS-03119
@@ -106,7 +107,7 @@ HIG-RunIIFall18wmLHEGS-03218
 HIG-RunIIFall18wmLHEGS-03219
 HIG-RunIIFall18wmLHEGS-03220
 HIG-RunIIFall18wmLHEGS-03221
-HIG-RunIIFall18wmLHEGS-03222
+#HIG-RunIIFall18wmLHEGS-03222
 )
 #ARR_REQUEST+=(HIG-RunIIFall18wmLHEGS-03116)
 #ARR_REQUEST+=(HIG-RunIIFall17wmLHEGS-00016)
@@ -130,9 +131,9 @@ for req in ${ARR_REQUEST[@]};do
 	pushd ${req}_${NEVENT}
 	
 	##if condor
-	if [[ "$HOSTNAME" == *"ui20"* ]]
+	if [[ "$HOSTNAME" == *"ui"* ]]
 	then
-	    echo "!!KISTI!!"
+	    echo "!!KISTI10!!"
 	    condor_submit condor_conf.jds
 	    
 
