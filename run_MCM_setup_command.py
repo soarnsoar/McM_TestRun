@@ -75,7 +75,7 @@ accounting_group=group_cms
 queue
 
         '''
-
+	ncpu='8'
         PREPID=self.PREPID
         NEVENT=self.NEVENT
         shname=PREPID+"_"+NEVENT+'.sh'
@@ -103,8 +103,9 @@ queue
         f.write('transfer_input_files=setup.sh\n')
         f.write('should_transfer_files = YES\n')
         f.write('accounting_group=group_cms\n')
-        f.write('queue\n')
-        f.close()
+        f.write('request_cpus = '+ncpu+'\n')
+	f.write('queue\n')
+	f.close()
 
     def cmsRun(self):##NOT WORKING
         PREPID=self.PREPID
